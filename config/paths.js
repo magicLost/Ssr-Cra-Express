@@ -52,7 +52,7 @@ const resolveModule = (resolveFn, filePath) => {
 module.exports = {
   dotenv: resolveApp(".env"),
   appPath: resolveApp("."),
-  appBuild: resolveApp("build-client"),
+  appBuild: resolveApp("build"),
   appPublic: resolveApp("public"),
   appHtml: resolveApp("public/index.html"),
   appIndexJs: resolveModule(resolveApp, "src/client/index"),
@@ -63,6 +63,9 @@ module.exports = {
   //our server index file
   serverEntryJs: resolveModule(resolveApp, "src/server/index"),
   serverOutput: resolveApp("src/server/build"),
+  ssrRenderedPagesEntryJs: resolveApp("src/ssrRender/index.tsx"),
+  ssrRenderedPagesOutput: resolveApp("src/ssrRender/build"),
+  //end our entry and output
   appTsConfig: resolveApp("tsconfig.json"),
   appJsConfig: resolveApp("jsconfig.json"),
   yarnLockFile: resolveApp("yarn.lock"),

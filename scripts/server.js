@@ -37,13 +37,11 @@ const WARN_AFTER_CHUNK_GZIP_SIZE = 1024 * 1024;
 
 const isInteractive = process.stdout.isTTY;
 
-// Warn and crash if required files are missing
-/* if (!checkRequiredFiles([paths.appHtml, paths.appIndexJs])) {
-  process.exit(1);
-} */
-
 // Generate configuration
 const config = configFactory("production");
+
+const isRender = process.argv.includes("--render");
+const outputPath = isRender ? paths.ssrRenderedPagesOutput : paths.serverOutput;
 
 // We require that you explicitly set browsers and do not fall back to
 // browserslist defaults.
@@ -52,12 +50,12 @@ checkBrowsers(paths.appPath, isInteractive)
   .then(() => {
     // First, read the current file sizes in build directory.
     // This lets us display how much they changed later.
-    return measureFileSizesBeforeBuild(paths.serverOutput);
+    return measureFileSizesBeforeBuild(outputPath);
   })
   .then((previousFileSizes) => {
     // Remove all content but keep the directory so that
     // if you're in it, you don't end up in Trash
-    fs.emptyDirSync(paths.serverOutput);
+    fs.emptyDirSync(outputPath);
     // Merge with the public folder
     //copyPublicFolder();
     // Start the webpack build
@@ -91,18 +89,6 @@ checkBrowsers(paths.appPath, isInteractive)
         WARN_AFTER_CHUNK_GZIP_SIZE
       );
       console.log();
-      /* 
-      const appPackage = require(paths.appPackageJson);
-      const publicUrl = paths.publicUrlOrPath;
-      const publicPath = config.output.publicPath;
-      const buildFolder = path.relative(process.cwd(), paths.appBuild);
-      printHostingInstructions(
-        appPackage,
-        publicUrl,
-        publicPath,
-        buildFolder,
-        useYarn
-      ); */
     },
     (err) => {
       const tscCompileOnError = process.env.TSC_COMPILE_ON_ERROR === "true";
@@ -141,7 +127,9 @@ function build(previousFileSizes) {
     console.log();
   }
 
-  console.log("Creating SERVER optimized build...");
+  console.log(
+    `Creating ${isRender ? "SSR RENDER" : "SERVER"} optimized build...`
+  );
 
   //console.log("MY LOGGG", config);
 
@@ -201,12 +189,5 @@ function build(previousFileSizes) {
         warnings: messages.warnings,
       });
     });
-  });
-}
-
-function copyPublicFolder() {
-  fs.copySync(paths.appPublic, paths.appBuild, {
-    dereference: true,
-    filter: (file) => file !== paths.appHtml,
   });
 }

@@ -25,6 +25,7 @@ const ModuleNotFoundPlugin = require("react-dev-utils/ModuleNotFoundPlugin");
 const ForkTsCheckerWebpackPlugin = require("react-dev-utils/ForkTsCheckerWebpackPlugin");
 const typescriptFormatter = require("react-dev-utils/typescriptFormatter");
 const webpackNodeExternals = require("webpack-node-externals");
+const LoadablePlugin = require("@loadable/webpack-plugin");
 
 const postcssNormalize = require("postcss-normalize");
 
@@ -51,6 +52,32 @@ const cssModuleRegex = /\.module\.css$/;
 const sassRegex = /\.(scss|sass)$/;
 const sassModuleRegex = /\.module\.(scss|sass)$/;
 
+const getEntry = (isServerRenderPages, isServer) => {
+  const entry = isServerRenderPages
+    ? paths.ssrRenderedPagesEntryJs
+    : isServer
+    ? paths.serverEntryJs
+    : paths.appIndexJs;
+
+  console.log("ENTRY", entry);
+
+  return entry;
+};
+
+const getOutput = (isServerRenderPages, isServer, isEnvProduction) => {
+  const output = isServerRenderPages
+    ? paths.ssrRenderedPagesOutput
+    : isServer
+    ? paths.serverOutput
+    : isEnvProduction
+    ? paths.appBuild
+    : undefined;
+
+  console.log("OUTPUT", output);
+
+  return output;
+};
+
 // This is the production and development configuration.
 // It is focused on developer experience, fast rebuilds, and a minimal bundle.
 module.exports = function (webpackEnv) {
@@ -63,8 +90,10 @@ module.exports = function (webpackEnv) {
     isEnvProduction && process.argv.includes("--profile");
 
   const isServer = process.argv.includes("--server");
+  const isServerRenderPages = process.argv.includes("--render");
 
   console.log("IS_SERVER", isServer);
+  console.log("IS_SERVER_RENDER_PAGES", isServerRenderPages);
 
   // We will provide `paths.publicUrlOrPath` to our app
   // as %PUBLIC_URL% in `index.html` and `process.env.PUBLIC_URL` in JavaScript.
@@ -159,18 +188,19 @@ module.exports = function (webpackEnv) {
       isEnvDevelopment &&
         require.resolve("react-dev-utils/webpackHotDevClient"),
       // Finally, this is your app's code:
-      isServer ? paths.serverEntryJs : paths.appIndexJs,
+      getEntry(isServerRenderPages, isServer),
+      /* isServerRenderPages
+        ? paths.ssrRenderedPagesEntryJs
+        : isServer
+        ? paths.serverEntryJs
+        : paths.appIndexJs, */
       // We include the app code last so that if there is a runtime error during
       // initialization, it doesn't blow up the WebpackDevServer client, and
       // changing JS code would still trigger a refresh.
     ].filter(Boolean),
     output: {
       // The build folder.
-      path: isServer
-        ? paths.serverOutput
-        : isEnvProduction
-        ? paths.appBuild
-        : undefined,
+      path: getOutput(isServerRenderPages, isServer, isEnvProduction),
       // Add /* filename */ comments to generated require()s in the output.
       pathinfo: isEnvDevelopment,
       // There will be one main bundle, and one file per asynchronous chunk.
@@ -533,6 +563,7 @@ module.exports = function (webpackEnv) {
             {
               inject: true,
               template: paths.appHtml,
+              filename: "iiindex.html",
             },
             isEnvProduction
               ? {
@@ -670,6 +701,7 @@ module.exports = function (webpackEnv) {
           // The formatter is invoked directly in WebpackDevServerUtils during development
           formatter: isEnvProduction ? typescriptFormatter : undefined,
         }),
+      new LoadablePlugin(),
     ].filter(Boolean),
 
     externals: isServer ? [webpackNodeExternals()] : undefined,

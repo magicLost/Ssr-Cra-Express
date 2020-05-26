@@ -1,1 +1,0 @@
-{"version":3,"sources":["Test.module.scss"],"names":[],"mappings":"AAAA,kBACE,gBAAiB,CACjB,WAAY,CACZ,YAAa,CACb,iBAAkB,CAClB,wBAAoC,CACpC,iBAAkB","file":"main.5e7cc744.css","sourcesContent":[".test {\n  margin: 20px auto;\n  width: 500px;\n  height: 500px;\n  text-align: center;\n  border: 1px solid rgb(167, 167, 167);\n  border-radius: 5px;\n}\n"]}
